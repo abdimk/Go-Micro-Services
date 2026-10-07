@@ -1,6 +1,6 @@
-# "Microservices with Go" course project
+# Microservices with Go
 
-This is the starter code for the "Microservices with Go" project.
+This is the starter code for the Microservices with Go project.
 
 ## Project overview
 

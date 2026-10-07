@@ -7,6 +7,7 @@ import (
 	"ride-sharing/shared/env"
 )
 
+
 var (
 	httpAddr = env.GetString("HTTP_ADDR", ":8081")
 )

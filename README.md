@@ -1,6 +1,12 @@
-# Microservices with Go
+<div align="center">
 
-A backend microservices system for an Uber‑style ride‑sharing app, built with Go, Docker, and Kubernetes.
+  <h2>Microservices with Go</h2>
+
+  <p>A backend microservices system for an Uber‑style ride‑sharing app, built with Go, Docker, and Kubernetes.</p>
+
+</div>
+
+
 
 ## Project overview
 

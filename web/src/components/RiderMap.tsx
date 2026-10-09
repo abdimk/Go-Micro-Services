@@ -160,8 +160,15 @@ export default function RiderMap({ onRouteSelected }: RiderMapProps) {
                     ref={mapRef}
                 >
                     <TileLayer
-                        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-                        attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors &copy; <a href='https://carto.com/'>CARTO</a>"
+                        url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+                        attribution="&copy; <a href='https://www.esri.com/'>Esri</a>, HERE, Garmin, FAO, NOAA, USGS, OpenStreetMap contributors"
+                        maxNativeZoom={16}
+                        maxZoom={19}
+                    />
+                    <TileLayer
+                        url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+                        maxNativeZoom={16}
+                        maxZoom={19}
                     />
                     <Marker position={[location.latitude, location.longitude]} icon={userMarker} />
 

@@ -27,6 +27,7 @@ func home(w http.ResponseWriter, r *http.Request) error {
 	return WriteJSON(w, http.StatusAccepted, APIResponse{Message: "Hello World from the API GateWay!"})
 }
 
+
 func handleTripPreview(w http.ResponseWriter, r *http.Request) error{
 	var reqBody previewTripRequest
 	
@@ -73,6 +74,9 @@ func NewMux() *http.ServeMux {
 	mux := http.NewServeMux()
 	// mux.HandleFunc("/", makeHTTPHandlerFunc(logMiddleware(home)))
 	mux.HandleFunc("POST /trip/preview", makeHTTPHandlerFunc(logMiddleware(handleTripPreview)))
+	mux.HandleFunc("/ws/drivers", makeHTTPHandlerFunc(handleDriversWebSocket))
+	mux.HandleFunc("/ws/riders",makeHTTPHandlerFunc(handleRidersWebSocket))
+	
 	return mux
 }
 

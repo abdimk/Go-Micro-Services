@@ -10,7 +10,7 @@ import { MapClickHandler } from './MapClickHandler';
 import { Button } from './ui/button';
 import { RouteFare, RequestRideProps, TripPreview, HTTPTripStartResponse } from "../types";
 import { RoutingControl } from "./RoutingControl";
-import { API_URL } from '../constants';
+import { API_URL, MAP_CENTER, MAP_MAX_ZOOM, MAP_TILE_ATTRIBUTION, MAP_TILE_URL } from '../constants';
 import { RiderTripOverview } from './RiderTripOverview';
 import { BackendEndpoints, HTTPTripPreviewRequestPayload, HTTPTripPreviewResponse, HTTPTripStartRequestPayload } from '../contracts';
 
@@ -41,8 +41,8 @@ export default function RiderMap({ onRouteSelected }: RiderMapProps) {
     const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const location = {
-        latitude: 37.7749,
-        longitude: -122.4194,
+        latitude: MAP_CENTER[0],
+        longitude: MAP_CENTER[1],
     };
 
     const {
@@ -160,15 +160,10 @@ export default function RiderMap({ onRouteSelected }: RiderMapProps) {
                     ref={mapRef}
                 >
                     <TileLayer
-                        url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-                        attribution="&copy; <a href='https://www.esri.com/'>Esri</a>, HERE, Garmin, FAO, NOAA, USGS, OpenStreetMap contributors"
-                        maxNativeZoom={16}
-                        maxZoom={19}
-                    />
-                    <TileLayer
-                        url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
-                        maxNativeZoom={16}
-                        maxZoom={19}
+                        url={MAP_TILE_URL}
+                        attribution={MAP_TILE_ATTRIBUTION}
+                        maxNativeZoom={18}
+                        maxZoom={MAP_MAX_ZOOM}
                     />
                     <Marker position={[location.latitude, location.longitude]} icon={userMarker} />
 

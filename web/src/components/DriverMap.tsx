@@ -12,10 +12,11 @@ import * as Geohash from 'ngeohash';
 import { RoutingControl } from "./RoutingControl";
 import { DriverCard } from "./DriverCard";
 import { TripEvents } from "../contracts";
+import { MAP_CENTER, MAP_MAX_ZOOM, MAP_TILE_ATTRIBUTION, MAP_TILE_URL } from "../constants";
 
 const START_LOCATION: Coordinate = {
-  latitude: 37.7749,
-  longitude: -122.4194,
+  latitude: MAP_CENTER[0],
+  longitude: MAP_CENTER[1],
 }
 
 const driverMarker = new L.Icon({
@@ -136,15 +137,10 @@ export const DriverMap = ({ packageSlug }: { packageSlug: CarPackageSlug }) => {
           ref={mapRef}
         >
           <TileLayer
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-            attribution="&copy; <a href='https://www.esri.com/'>Esri</a>, HERE, Garmin, FAO, NOAA, USGS, OpenStreetMap contributors"
-            maxNativeZoom={16}
-            maxZoom={19}
-          />
-          <TileLayer
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
-            maxNativeZoom={16}
-            maxZoom={19}
+            url={MAP_TILE_URL}
+            attribution={MAP_TILE_ATTRIBUTION}
+            maxNativeZoom={18}
+            maxZoom={MAP_MAX_ZOOM}
           />
 
           <Marker

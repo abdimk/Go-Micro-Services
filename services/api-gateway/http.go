@@ -72,10 +72,13 @@ func handleTripPreview(w http.ResponseWriter, r *http.Request) error{
 
 func NewMux() *http.ServeMux {
 	mux := http.NewServeMux()
+	
+	
+	
 	// mux.HandleFunc("/", makeHTTPHandlerFunc(logMiddleware(home)))
-	mux.HandleFunc("POST /trip/preview", makeHTTPHandlerFunc(logMiddleware(handleTripPreview)))
-	mux.HandleFunc("/ws/drivers", makeHTTPHandlerFunc(handleDriversWebSocket))
-	mux.HandleFunc("/ws/riders",makeHTTPHandlerFunc(handleRidersWebSocket))
+	mux.HandleFunc("POST /trip/preview", makeHTTPHandlerFunc(logMiddleware(handleTripPreview), true))
+	mux.HandleFunc("/ws/drivers", makeHTTPHandlerFunc(handleDriversWebSocket, true))
+	mux.HandleFunc("/ws/riders",makeHTTPHandlerFunc(handleRidersWebSocket,true))
 	
 	return mux
 }
@@ -89,8 +92,18 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	return json.NewEncoder(w).Encode(v)
 }
 
-func makeHTTPHandlerFunc(f apiFunc) http.HandlerFunc {
+func makeHTTPHandlerFunc(f apiFunc, enableCORS bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if enableCORS{
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			
+			if r.Method == "OPTIONS"{
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+		}
 		if err := f(w, r); err != nil {
 			log.Printf("handler error on %s %s: %v", r.Method, r.URL.Path, err)
 			WriteJSON(w, http.StatusBadRequest, APIError{Error: err.Error()})

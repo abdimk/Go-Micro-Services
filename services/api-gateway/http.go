@@ -1,12 +1,11 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"log"
 	"net/http"
+	"ride-sharing/services/api-gateway/grpc_clients"
 	"ride-sharing/shared/contracts"
-	
 )
 
 type APIError struct {
@@ -42,28 +41,49 @@ func handleTripPreview(w http.ResponseWriter, r *http.Request) error{
 		return WriteJSON(w,http.StatusBadRequest,"user ID is required")
 	}
 	
-	requestMarshalBody,err := json.Marshal(reqBody)
+	// requestMarshalBody,err := json.Marshal(reqBody)
+	// if err != nil{
+	// 	log.Println("unable to parse the data")
+	// }
+	
+	tripService, err := grpc_clients.NewTripServiceClient()
 	if err != nil{
-		log.Println("unable to parse the data")
+		log.Printf("failed to create trip service client: %v", err)
+		http.Error(w, "Failed to preview trip", http.StatusInternalServerError)
+		return nil
 	}
 	
-	resp, err := http.Post("http://trip-service:8083/preview","application/json",bytes.NewBuffer(requestMarshalBody))
+	defer tripService.Close()
+	
+	tripPreview, err := tripService.Client.PreviewTrip(r.Context(), reqBody.ToProto())
 	
 	if err != nil{
-		log.Println("unable to send a request", err)
+		log.Printf("failed to preview a trip: %v", err)
+		http.Error(w, "Failed to preview trip", http.StatusInternalServerError)
+		return nil
 	}
+	// TODO: Call trip service
+	// resp, err := http.Post("http://trip-service:8083/preview","application/json",bytes.NewBuffer(requestMarshalBody))
 	
-	defer resp.Body.Close()
+	// if err != nil{
+	// 	log.Println("unable to send a request", err)
+	// }
 	
-	var respBody any
 	
-	if err := json.NewDecoder(resp.Body).Decode(&respBody); err != nil{
-		return WriteJSON(w, http.StatusBadRequest,"failed to parse JSON data from trip service")
-	}
+	// defer resp.Body.Close()
+	// 
+	
+	
+	
+	// var respBody any
+	
+	// if err := json.NewDecoder(resp.Body).Decode(&respBody); err != nil{
+	// 	return WriteJSON(w, http.StatusBadRequest,"failed to parse JSON data from trip service")
+	// }
 	// log.Println("Response from the trip :", resp)
 	
 	
-	response := contracts.APIResponse{Data: respBody}
+	response := contracts.APIResponse{Data: tripPreview}
 
 	
 	return WriteJSON(w, http.StatusAccepted, response)

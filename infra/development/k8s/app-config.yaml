@@ -5,3 +5,4 @@ metadata:
 data:
   ENVIRONMENT: "development"
   GATEWAY_HTTP_ADDR: ":8081"
+  TRIP_SERVICE_URL: "trip-service:9093"

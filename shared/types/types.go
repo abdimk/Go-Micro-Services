@@ -1,5 +1,6 @@
 package types
 
+
 type Route struct {
 	Distance float64     `json:"distance"`
 	Duration float64     `json:"duration"`
@@ -16,12 +17,3 @@ type Coordinate struct {
 }
 
 
-type OsrmAPIResponse struct {
-	Routes []struct{
-		Distance float64   `json:"distance"`
-		Duration float64   `json:"duration"`
-		Geometry struct {   
-			Coordinate [][]float64  `json:"coordinates"`
-		} `json:"geometry"`
-	} `json:"routes"`
-}

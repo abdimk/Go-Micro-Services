@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"ride-sharing/services/trip-service/internal/domain"
+	tripTypes "ride-sharing/services/trip-service/pkg/types"
 	"ride-sharing/shared/types"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -36,7 +37,7 @@ func (s *TripUserService) CreateTrip(ctx context.Context, fare *domain.RideFareM
 }
 
 
-func (s *TripUserService) GetRoute(ctx context.Context, pickup, destination *types.Coordinate) (*types.OsrmAPIResponse, error){
+func (s *TripUserService) GetRoute(ctx context.Context, pickup, destination *types.Coordinate) (*tripTypes.OsrmAPIResponse, error){
 	url := fmt.Sprintf("%s/route/v1/driving/%f,%f;%f,%f?overview=full&geometries=geojson",
 		baseURL,
 		pickup.Longitude,pickup.Latitude,
@@ -57,7 +58,7 @@ func (s *TripUserService) GetRoute(ctx context.Context, pickup, destination *typ
 		return nil, fmt.Errorf("failed to read the response: %v", err)
 	}
 	
-	var routeResp types.OsrmAPIResponse
+	var routeResp tripTypes.OsrmAPIResponse
 	
 	if err := json.Unmarshal(body, &routeResp); err != nil{
 		return nil, fmt.Errorf("failed to parse response: %v", err)

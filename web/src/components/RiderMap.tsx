@@ -36,6 +36,7 @@ export default function RiderMap({ onRouteSelected }: RiderMapProps) {
     const [trip, setTrip] = useState<TripPreview | null>(null)
     const [selectedCarPackage] = useState<RouteFare | null>(null)
     const [destination, setDestination] = useState<[number, number] | null>(null)
+    const [previewError, setPreviewError] = useState<string | null>(null)
     const mapRef = useRef<L.Map>(null)
     const userID = useMemo(() => crypto.randomUUID(), [])
     const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -68,25 +69,34 @@ export default function RiderMap({ onRouteSelected }: RiderMapProps) {
         debounceTimeoutRef.current = setTimeout(async () => {
             setDestination([e.latlng.lat, e.latlng.lng])
 
-            const data = await requestRidePreview({
-                pickup: [location.latitude, location.longitude],
-                destination: [e.latlng.lat, e.latlng.lng],
-            })
-            console.log(data)
+            try {
+                const data = await requestRidePreview({
+                    pickup: [location.latitude, location.longitude],
+                    destination: [e.latlng.lat, e.latlng.lng],
+                })
 
-            const parsedRoute = data.route.geometry[0].coordinates
-                .map((coord) => [coord.longitude, coord.latitude] as [number, number])
+                const parsedRoute = data.route.geometry[0].coordinates
+                    .map((coord) => [coord.longitude, coord.latitude] as [number, number])
 
-            setTrip({
-                tripID: "",
-                route: parsedRoute,
-                rideFares: data.rideFares,
-                distance: data.route.distance,
-                duration: data.route.duration,
-            })
+                setPreviewError(null)
+                setTrip({
+                    tripID: "",
+                    route: parsedRoute,
+                    rideFares: data.rideFares,
+                    distance: data.route.distance,
+                    duration: data.route.duration,
+                })
 
-            // Call onRouteSelected with the route distance
-            onRouteSelected?.(data.route.distance)
+                // Call onRouteSelected with the route distance
+                onRouteSelected?.(data.route.distance)
+            } catch (err) {
+                // The route lookup can fail (the trip service answers 500 when it
+                // cannot reach the routing API), so surface it instead of leaving
+                // the map silently empty.
+                console.error("failed to preview the trip", err)
+                setTrip(null)
+                setPreviewError("Could not load the route. Click the map again to retry.")
+            }
         }, 500);
     }
 
@@ -108,7 +118,17 @@ export default function RiderMap({ onRouteSelected }: RiderMapProps) {
             method: 'POST',
             body: JSON.stringify(payload),
         })
+
+        if (!response.ok) {
+            throw new Error(`route request failed with status ${response.status}`)
+        }
+
         const { data } = await response.json() as { data: HTTPTripPreviewResponse }
+
+        if (!data?.route?.geometry?.length) {
+            throw new Error("route response contains no geometry")
+        }
+
         return data
     }
 
@@ -143,6 +163,7 @@ export default function RiderMap({ onRouteSelected }: RiderMapProps) {
     const handleCancelTrip = () => {
         setTrip(null)
         setDestination(null)
+        setPreviewError(null)
         resetTripStatus()
     }
 
@@ -152,7 +173,7 @@ export default function RiderMap({ onRouteSelected }: RiderMapProps) {
 
     return (
         <div className="relative flex flex-col md:flex-row h-screen">
-            <div className={`${destination ? 'flex-[0.7]' : 'flex-1'}`}>
+            <div className={`relative ${destination ? 'flex-[0.7]' : 'flex-1'}`}>
                 <MapContainer
                     center={[location.latitude, location.longitude]}
                     zoom={13}
@@ -225,6 +246,12 @@ export default function RiderMap({ onRouteSelected }: RiderMapProps) {
                     )}
                     <MapClickHandler onClick={handleMapClick} />
                 </MapContainer>
+
+                {previewError && (
+                    <div className="absolute left-1/2 top-4 z-[1000] -translate-x-1/2 rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white shadow-lg">
+                        {previewError}
+                    </div>
+                )}
             </div>
 
             <div className="flex-[0.4]">

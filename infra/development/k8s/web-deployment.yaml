@@ -32,9 +32,9 @@ spec:
         - name: NODE_ENV
           value: "development"
         - name: NEXT_PUBLIC_API_URL
-          value: "http://api-gateway:8081"
+          value: "http://api-gateway:8084"
         - name: NEXT_PUBLIC_WEBSOCKET_URL
-          value: "ws://api-gateway:8081/ws"
+          value: "ws://api-gateway:8084/ws"
         readinessProbe:
           httpGet:
             path: /

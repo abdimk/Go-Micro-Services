@@ -1,5 +1,5 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8081';
-export const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL ?? 'ws://localhost:8081/ws';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8084';
+export const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL ?? 'ws://localhost:8084/ws';
 
 // Default map view — Addis Ababa, Ethiopia
 // (approx. 9°01′N 38°45′E, around the city center / Meskel Square)

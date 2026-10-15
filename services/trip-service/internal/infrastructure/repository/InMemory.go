@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"ride-sharing/services/trip-service/internal/domain"
+
 )
 
 
@@ -26,4 +27,10 @@ func (r *InMemoryRepository) CreateTrip(ctx context.Context, trip *domain.TripMo
 	r.trips[trip.ID.Hex()] = trip
 	
 	return trip, nil
+}
+
+
+func (r *InMemoryRepository) SaveRideFare(ctx context.Context, f *domain.RideFareModel) error {
+	r.rideFares[f.ID.Hex()] = f
+	return nil
 }

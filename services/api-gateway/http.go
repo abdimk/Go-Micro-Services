@@ -90,6 +90,44 @@ func handleTripPreview(w http.ResponseWriter, r *http.Request) error{
 
 }
 
+func handleTripStart(w http.ResponseWriter, r *http.Request) error{
+	var reqBody startTripRequest
+	
+	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil{
+		return WriteJSON(w, http.StatusBadRequest,"failed to parse JSON data")
+	}
+	
+	defer r.Body.Close()
+	
+	
+	tripService, err := grpc_clients.NewTripServiceClient()
+	if err != nil{
+		log.Printf("failed to create trip service client: %v", err)
+		http.Error(w, "Failed to preview trip", http.StatusInternalServerError)
+		return nil
+	}
+	
+	defer tripService.Close()
+	
+	trip, err := tripService.Client.CreateTrip(r.Context(), reqBody.ToProto())
+	
+	if err != nil{
+		log.Printf("Failed to preview a trip: %v", err)
+		http.Error(w, "Failed to preview trip", http.StatusInternalServerError)
+		return nil
+	}
+	
+	response := contracts.APIResponse{Data: trip}
+
+	
+	return WriteJSON(w, http.StatusCreated, response)
+		
+	
+	
+}
+
+
+
 func NewMux() *http.ServeMux {
 	mux := http.NewServeMux()
 	
@@ -97,6 +135,7 @@ func NewMux() *http.ServeMux {
 	
 	// mux.HandleFunc("/", makeHTTPHandlerFunc(logMiddleware(home)))
 	mux.HandleFunc("POST /trip/preview", makeHTTPHandlerFunc(logMiddleware(handleTripPreview), true))
+	mux.HandleFunc("POST /trip/start", makeHTTPHandlerFunc(logMiddleware(handleTripStart), true))
 	mux.HandleFunc("/ws/drivers", makeHTTPHandlerFunc(handleDriversWebSocket, true))
 	mux.HandleFunc("/ws/riders",makeHTTPHandlerFunc(handleRidersWebSocket,true))
 	

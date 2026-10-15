@@ -29,7 +29,11 @@ func NewGRPCHandler(server *grpc.Server, service domain.TripService) *gRPCHandle
 	
 }
 
-func (h * gRPCHandler) PreviewTrip(ctx context.Context, req *pb.PreviewTripRequest) (*pb.PreviewTripResponse, error) {
+func (h *gRPCHandler) CreateTrip(ctx context.Context, req *pb.CreateTripRequest) (*pb.CreateTripResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateTrip not implemented")
+}
+
+func (h *gRPCHandler) PreviewTrip(ctx context.Context, req *pb.PreviewTripRequest) (*pb.PreviewTripResponse, error) {
 	pickup := req.GetStartLocation()
 	destination := req.GetEndLocation()
 	
@@ -43,14 +47,27 @@ func (h * gRPCHandler) PreviewTrip(ctx context.Context, req *pb.PreviewTripReque
 		Longitude: destination.Longitude,
 	}
 	
+	userID := req.GetUserID()
+	
 	t, err := h.service.GetRoute(ctx,pickupCoord, destinationCoord)
 	
 	if err != nil {
 		log.Println(err)
 		return nil, status.Errorf(codes.Internal, "failed to get route: %v", err)
 	}
+	
+	// 1.Estimate the ride fares prices based on the route(ex: distance)
+	estimatedFares := h.service.EstimatePackagesPriceWithRoute(t)
+	
+	fares, err := h.service.GenerateTripFares(ctx, estimatedFares, userID)
+	
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to generate the ride fares: %v", err)
+	}
+	
 	return &pb.PreviewTripResponse{
 		Route: t.ToProto(),
-		RideFares: []*pb.RideFare{},
+		RideFares: domain.ToRideFaresProto(fares),
 	},nil 
 }
+  

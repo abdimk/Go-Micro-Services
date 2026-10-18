@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"ride-sharing/services/trip-service/internal/domain"
 	tripTypes "ride-sharing/services/trip-service/pkg/types"
+	"ride-sharing/shared/proto/trip"
 	"ride-sharing/shared/types"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -28,9 +29,10 @@ func NewTripUserService(repo domain.TripRepository)(*TripUserService){
 func (s *TripUserService) CreateTrip(ctx context.Context, fare *domain.RideFareModel) (*domain.TripModel, error){
 	t := &domain.TripModel{
 		ID: primitive.NewObjectID(),
-		UserID: fare.UserId,
+		UserID: fare.UserID,
 		Status: "pending",
 		RideFare: fare,
+		Driver: &trip.TripDriver{},
 	}
 	
 	return s.repo.CreateTrip(ctx, t)
@@ -79,17 +81,18 @@ func (s *TripUserService) EstimatePackagesPriceWithRoute(route *tripTypes.OsrmAP
 
 }
 
-func (s *TripUserService) GenerateTripFares(ctx context.Context, ridefares []*domain.RideFareModel, userID string) ([]*domain.RideFareModel, error){
+func (s *TripUserService) GenerateTripFares(ctx context.Context, ridefares []*domain.RideFareModel, userID string, route *tripTypes.OsrmAPIResponse) ([]*domain.RideFareModel, error){
 	
 	fares := make([]*domain.RideFareModel, len(ridefares))
 	
 	for i, f := range ridefares {
 		id := primitive.NewObjectID()
 		fare := &domain.RideFareModel{
-			UserId: userID,
+			UserID: userID,
 			ID: id,
 			TotalPriceInCents: f.TotalPriceInCents,
 			PackageSlug:       f.PackageSlug,
+			Route: route,
 		}
 		
 		if err := s.repo.SaveRideFare(ctx, fare); err != nil {
@@ -100,6 +103,22 @@ func (s *TripUserService) GenerateTripFares(ctx context.Context, ridefares []*do
 		
 	}
 	return fares,nil
+}
+
+func (s *TripUserService) GetAndValidateFare(ctx context.Context, fareID,userID string)(*domain.RideFareModel, error){
+	fare, err := s.repo.GetRideFareByID(ctx, fareID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get trip fare: %w", err)
+	}
+	if fare == nil {
+		return nil, fmt.Errorf("fare does not exist")
+	}
+	
+	if userID != fare.UserID {
+		return nil, fmt.Errorf("fare does not belong to the user")
+	}
+	
+	return fare, nil
 }
 
 func estimateFareRoute(f *domain.RideFareModel, route *tripTypes.OsrmAPIResponse) *domain.RideFareModel {
